@@ -1,0 +1,87 @@
+---
+title: "Geneesmiddelen"
+runtime: shiny
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+```
+
+```{r global, include=FALSE}
+
+library(ggthemes)
+library(tidyverse)
+library(dplyr)
+library(ggjoy)
+library(readxl)
+library(readr)
+library(shiny)
+
+weesgeneesmiddelen <- read_excel("~/Google Drive/R/Geneesmiddelen/gip_farmacie_zvw_2011_2015_04072017-csv (met weesgeneesmiddelen).xlsx", col_types = c("text", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric"))
+
+wees <- na.omit(weesgeneesmiddelen[weesgeneesmiddelen$vergoeding_per_gebruiker >= 0, ])
+```
+
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+Verstrekte geneesmiddelen per jaar
+
+```{r}
+library(shiny)
+selectInput("year", label = "jaar:", choices = c("2011", "2012", "2013", "2014", "2015"), selected = "2015")
+```
+
+
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Chart A
+
+
+```{r}
+library(knitr)
+library(DT)
+library(shiny)
+
+filtered_df <- reactive({
+      	wees[wees$jaar == input$year, ]
+})
+
+renderTable({filtered_df()})
+```
+
+
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+
+### Chart C
+
+
+```{r}
+library(ggplot2)
+library(shiny)
+
+filtered_df <- reactive({
+      	wees[wees$jaar == input$year, ]
+})
+
+renderPlot({
+
+  ggplot(filtered_df(),
+  aes(gebruikers, vergoeding)) + 
+  geom_jitter(aes(color=weesgeneesmiddel, size=vergoeding_per_gebruiker), alpha =.5) +
+  theme(legend.position="bottom",plot.caption=element_text(hjust=0,size=9),
+        axis.title=element_text(size=10),
+        plot.title=element_text(size=18))
+
+})
+```
